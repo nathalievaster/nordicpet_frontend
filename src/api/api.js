@@ -17,12 +17,18 @@ export const apiFetch = async (endpoint, options = {}) => { // options för att 
     ...options
   });
 
-  // Försöker parsa svaret som JSON, om det misslyckas (t.ex. tomt svar) så returneras null
-  const data = await res.json().catch(() => null);
+  // Läs body som JSON
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    data = null;
+  }
 
+  // Kasta bara om res.ok är false
   if (!res.ok) {
     throw data || { error: 'API error' };
   }
 
-  return data;
+  return data; // Här kommer data.user att finnas
 };

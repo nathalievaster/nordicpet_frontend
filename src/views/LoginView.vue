@@ -62,11 +62,17 @@ const login = async () => {
       })
     });
 
-    // SPARA AUTH-DATA
+    if (!data.user || !data.token) {
+      throw { error: 'Ogiltigt svar från servern' };
+    }
+    
+    // Spara token och användarinfo direkt
     localStorage.setItem('token', data.token);
     localStorage.setItem('role', data.user.role);
+    localStorage.setItem('email', data.user.email);
+    localStorage.setItem('userId', data.user.id);
 
-    // Skickar användaren till startsidan efter inloggning, kanske ändrar till annan senare.
+    // Navigera till startsidan efter inloggning, kanske ändrar sen.
     router.push('/');
   } catch (err) {
     // Felmeddelande från servern eller generiskt felmeddelande
