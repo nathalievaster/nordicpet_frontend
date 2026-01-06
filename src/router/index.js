@@ -29,4 +29,16 @@ const router = createRouter({
   ],
 })
 
+// Enkel funktion för att kolla om användaren är inloggad
+router.beforeEach((to, from, next) => {
+  // Kolla om routen kräver autentisering
+  if (to.meta.requiresAuth && !isLoggedIn()) {
+    // Om inte inloggad → skicka till login
+    return next('/login');
+  }
+
+  // Annars, fortsätt som vanligt
+  next();
+});
+
 export default router
