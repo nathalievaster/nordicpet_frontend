@@ -6,7 +6,8 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('../views/Homeview.vue')
+      component: () => import('../views/Homeview.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/login',
@@ -16,12 +17,14 @@ const router = createRouter({
     {
       path: '/categories',
       name: 'categories',
-      component: () => import('../views/CategoriesView.vue')
+      component: () => import('../views/CategoriesView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] }
     },
     {
       path: '/products',
       name: 'products',
-      component: () => import('../views/ProductsView.vue')
+      component: () => import('../views/ProductsView.vue'),
+      meta: { requiresAuth: true }
     }
   ],
 })
