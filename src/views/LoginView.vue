@@ -42,6 +42,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiFetch } from '@/api/api';
+import { setAuth } from '@/api/navAuth';
 
 const email = ref('');
 const password = ref('');
@@ -66,11 +67,8 @@ const login = async () => {
       throw { error: 'Ogiltigt svar från servern' };
     }
     
-    // Spara token och användarinfo direkt
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('role', data.user.role);
-    localStorage.setItem('email', data.user.email);
-    localStorage.setItem('userId', data.user.id);
+    // Spara token och roll i localStorage
+    setAuth(data.token, data.user.role);
 
     // Navigera till startsidan efter inloggning, kanske ändrar sen.
     router.push('/');
