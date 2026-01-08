@@ -9,35 +9,43 @@
       >Lägg till produkt</button>
 
           <!-- Produktform (admin only) -->
-    <div v-if="showForm && isAdmin" class="card mb-4">
-      <div class="card-body">
-        <h5>Lägg till produkt</h5>
+    <div v-if="showForm && isAdmin">
+        <h2>Lägg till produkt</h2>
 
         <form @submit.prevent="createProduct">
           <div class="mb-2">
+            <label for="name" class="form-label">Namn</label>
             <input v-model="form.name" class="form-control" placeholder="Namn" />
           </div>
 
           <div class="mb-2">
+            <label for="description" class="form-label">Beskrivning</label>
             <input v-model="form.description" class="form-control" placeholder="Beskrivning" />
           </div>
 
           <div class="mb-2">
+            <label for="price" class="form-label ">Pris</label>
             <input v-model.number="form.price" type="number" class="form-control" placeholder="Pris" />
           </div>
 
           <div class="mb-2">
+            <label for="imageUrl" class="form-label">Bild-URL</label>
             <input v-model="form.imageUrl" class="form-control" placeholder="Bild-URL" />
           </div>
 
           <div class="mb-2">
+            <label for="categoryId" class="form-label">Kategori-ID</label>
             <input v-model.number="form.categoryId" type="number" class="form-control" placeholder="Kategori-ID" />
+          </div>
+
+          <div class="mb-2">
+            <label for="quantity" class="form-label">Antal</label>
+            <input v-model.number="form.quantity" type="number" class="form-control" placeholder="Antal" />
           </div>
 
           <button class="btn btn-primary">Spara</button>
         </form>
       </div>
-    </div>
 
     <!-- Inga produkter -->
     <div v-if="!loading && products.length === 0" class="alert alert-warning">
@@ -147,5 +155,26 @@ onMounted(fetchProducts);
   object-fit: cover;
 }
 
+form {
+  max-width: 600px;
+  margin: 0 auto;
+}
 
+label {
+  font-weight: bold;
+  margin: 0 auto;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  text-align: center;
+}
+
+input {
+  margin-bottom: 1rem;
+}
+
+form button {
+  margin-top: 1.5em;
+}
 </style>
