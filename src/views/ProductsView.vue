@@ -1,6 +1,44 @@
 <template>
     <h1 class="mb-4">Produkter</h1>
 
+    <button
+        v-if="isAdmin"
+        class="btn btn-success"
+        @click="toggleForm"
+        title="Lägg till produkt"
+      >Lägg till produkt</button>
+
+          <!-- Produktform (admin only) -->
+    <div v-if="showForm && isAdmin" class="card mb-4">
+      <div class="card-body">
+        <h5>Lägg till produkt</h5>
+
+        <form @submit.prevent="createProduct">
+          <div class="mb-2">
+            <input v-model="form.name" class="form-control" placeholder="Namn" />
+          </div>
+
+          <div class="mb-2">
+            <input v-model="form.description" class="form-control" placeholder="Beskrivning" />
+          </div>
+
+          <div class="mb-2">
+            <input v-model.number="form.price" type="number" class="form-control" placeholder="Pris" />
+          </div>
+
+          <div class="mb-2">
+            <input v-model="form.imageUrl" class="form-control" placeholder="Bild-URL" />
+          </div>
+
+          <div class="mb-2">
+            <input v-model.number="form.categoryId" type="number" class="form-control" placeholder="Kategori-ID" />
+          </div>
+
+          <button class="btn btn-primary">Spara</button>
+        </form>
+      </div>
+    </div>
+
     <!-- Inga produkter -->
     <div v-if="!loading && products.length === 0" class="alert alert-warning">
       Inga produkter hittades
@@ -42,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { apiFetch } from '@/api/api';
 import { userRole } from '@/api/navAuth';
 
@@ -50,6 +88,17 @@ import { userRole } from '@/api/navAuth';
 const products = ref([]);
 const loading = ref(false);
 const error = ref(null);
+const showForm = ref(false);
+
+// Form
+const form = ref({
+  name: '',
+  description: '',
+  price: 0,
+  imageUrl: '',
+  categoryId: '',
+  quantity: 0
+});
 
 // Roll
 const isAdmin = computed(() => userRole.value === 'admin');
@@ -57,8 +106,6 @@ const isAdmin = computed(() => userRole.value === 'admin');
 // Hämta produkter
 const fetchProducts = async () => {
   loading.value = true;
-  error.value = null;
-
   try {
     products.value = await apiFetch('/products');
   } catch (err) {
@@ -68,8 +115,30 @@ const fetchProducts = async () => {
   }
 };
 
-// Kör vid mount
+// Toggle formulär
+const toggleForm = () => {
+  // Visa/dölj formulär
+  showForm.value = !showForm.value;
+};
+
+// Skapa produkt
+const createProduct = async () => {
+  try {
+    await apiFetch('/products', {
+      method: 'POST',
+      body: JSON.stringify(form.value)
+    });
+
+    // Återställ formulär
+    showForm.value = false;
+    await fetchProducts();
+  } catch (err) {
+    alert(err?.error || 'Kunde inte skapa produkt');
+  }
+};
+
 onMounted(fetchProducts);
+
 </script>
 
 <style scoped>
