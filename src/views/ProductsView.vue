@@ -34,9 +34,22 @@
           </div>
 
           <div class="mb-2">
-            <label for="categoryId" class="form-label">Kategori-ID</label>
-            <input v-model.number="form.categoryId" type="number" class="form-control" placeholder="Kategori-ID" />
-          </div>
+            <label for="categoryId" class="form-label">Kategori</label>
+            <select
+            v-model.number="form.categoryId"
+            class="form-select"
+            required>
+            <option disabled value="">Välj kategori</option>
+
+    <option
+      v-for="category in categories"
+      :key="category.id"
+      :value="category.id"
+    >
+      {{ category.name }}
+    </option>
+  </select>
+</div>
 
           <div class="mb-2">
             <label for="quantity" class="form-label">Antal</label>
@@ -94,6 +107,7 @@ import { userRole } from '@/api/navAuth';
 
 // State
 const products = ref([]);
+const categories = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const showForm = ref(false);
@@ -123,6 +137,16 @@ const fetchProducts = async () => {
   }
 };
 
+// Hämta kategorier
+const fetchCategories = async () => {
+  try {
+    categories.value = await apiFetch('/categories');
+  } catch (err) {
+    console.error('Kunde inte hämta kategorier', err);
+  }
+};
+
+
 // Toggle formulär
 const toggleForm = () => {
   // Visa/dölj formulär
@@ -145,7 +169,10 @@ const createProduct = async () => {
   }
 };
 
-onMounted(fetchProducts);
+onMounted(() => {
+  fetchProducts();
+  fetchCategories();
+});
 
 </script>
 
