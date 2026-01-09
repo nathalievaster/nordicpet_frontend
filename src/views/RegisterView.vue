@@ -2,19 +2,30 @@
   <div class="container mt-5">
     <div class="row justify-content-center">
       <div class="col-md-4">
-        <h1 class="text-center mb-4">Logga in</h1>
+        <h1 class="text-center mb-4">Skapa konto</h1>
 
-        <form @submit.prevent="login" class="card p-4 shadow">
+        <form @submit.prevent="register" class="card p-4 shadow">
+          <!-- NAMN -->
+          <div class="mb-3">
+            <label class="form-label">Namn</label>
+            <input
+              v-model="name"
+              class="form-control"
+              :class="{ 'is-invalid': nameError }"
+            />
+            <div v-if="nameError" class="invalid-feedback">
+              {{ nameError }}
+            </div>
+          </div>
+
           <!-- EMAIL -->
           <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
+            <label class="form-label">Email</label>
             <input
               v-model="email"
               type="email"
-              id="email"
               class="form-control"
               :class="{ 'is-invalid': emailError }"
-              placeholder="Email"
             />
             <div v-if="emailError" class="invalid-feedback">
               {{ emailError }}
@@ -23,28 +34,21 @@
 
           <!-- LÖSENORD -->
           <div class="mb-3">
-            <label for="password" class="form-label">Lösenord</label>
+            <label class="form-label">Lösenord</label>
             <input
               v-model="password"
               type="password"
-              id="password"
               class="form-control"
               :class="{ 'is-invalid': passwordError }"
-              placeholder="Lösenord"
             />
             <div v-if="passwordError" class="invalid-feedback">
               {{ passwordError }}
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary w-100">
-            Logga in
+          <button class="btn btn-success w-100">
+            Skapa konto
           </button>
-
-          <hr />
-
-          <button type="button" class="btn btn-outline-secondary w-100"
-          @click="router.push('/register')">Skapa konto</button>
 
           <p v-if="error" class="text-danger mt-2 text-center">
             {{ error }}
@@ -55,75 +59,65 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiFetch } from '@/api/api';
-import { setAuth } from '@/api/navAuth';
 
+const router = useRouter();
+
+const name = ref('');
 const email = ref('');
 const password = ref('');
-// Felmeddelande vid misslyckad inloggning, null om inget fel
-const error = ref(null);
 
+const error = ref(null);
+const nameError = ref(null);
 const emailError = ref(null);
 const passwordError = ref(null);
 
-// Router-instans för navigering efter inloggning
-const router = useRouter();
-
 const validate = () => {
+  nameError.value = null;
   emailError.value = null;
   passwordError.value = null;
 
   let valid = true;
 
-  if (!email.value) {
-    emailError.value = 'Email är obligatoriskt';
-    valid = false;
-  } else if (!email.value.includes('@')) {
-    emailError.value = 'Ogiltig emailadress';
+  if (!name.value) {
+    nameError.value = 'Namn är obligatoriskt';
     valid = false;
   }
 
-  if (!password.value) {
-    passwordError.value = 'Lösenord är obligatoriskt';
-    valid = false;
-  } else if (password.value.length < 6) {
-    passwordError.value = 'Lösenord måste vara minst 6 tecken';
+  if (!email.value || !email.value.includes('@')) {
+    emailError.value = 'Ogiltig email';
     valid = false;
   }
+
+  if (!password.value || password.value.length < 6) {
+    passwordError.value = 'Minst 6 tecken';
+    valid = false;
+  }
+
   return valid;
 };
 
-const login = async () => {
+const register = async () => {
   error.value = null;
-
-  if (!validate()) {
-    return;
-  }
+  if (!validate()) return;
 
   try {
-    const data = await apiFetch('/auth/login', {
+    await apiFetch('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
+        name: name.value,
         email: email.value,
         password: password.value
       })
     });
-    
-    // Spara token och roll i localStorage
-    setAuth(data.token, data.user.role);
 
-    // Navigera till startsidan efter inloggning, kanske ändrar sen.
-    router.push('/');
+    alert('Konto skapat! Logga in.');
+    router.push('/login');
   } catch (err) {
-    // Felmeddelande från servern eller generiskt felmeddelande
-    error.value = err?.error || 'Fel vid inloggning';
+    error.value = err?.error || 'Kunde inte skapa konto';
   }
 };
 </script>
-
-
-<style scoped></style>

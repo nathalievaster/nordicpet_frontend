@@ -12,7 +12,7 @@
     <div v-if="showForm && isAdmin">
         <h2>Lägg till produkt</h2>
 
-        <form @submit.prevent="createProduct">
+        <form @submit.prevent="editingProductId ? updateProduct() : createProduct()">
           <div class="mb-2">
             <label for="name" class="form-label">Namn</label>
             <input v-model="form.name" class="form-control" placeholder="Namn" />
@@ -54,7 +54,7 @@
             <input v-model.number="form.quantity" type="number" class="form-control" placeholder="Antal" />
           </div>
 
-          <button class="btn btn-primary">Spara</button>
+          <button class="btn btn-primary">{{ editingProductId ? 'Uppdatera' : 'Spara' }}</button>
         </form>
       </div>
 
@@ -84,11 +84,14 @@
             <p class="fw-bold">{{ product.price }} kr</p>
           </div>
 
-          <!-- Admin-funktioner, bygger på senare -->
+          <!-- Admin-funktioner-->
           <div class="card-footer" v-if="isAdmin">
-            <button class="btn btn-sm btn-outline-primary me-2">
-              Redigera
-            </button>
+          <!-- Redigera-knapp -->
+            <button
+              class="btn btn-sm btn-outline-primary me-2"
+              @click="startEdit(product)"
+              >Redigera</button>
+          <!-- Ta bort-knapp -->
             <button
               class="btn btn-sm btn-outline-danger"
               @click="deleteProduct(product.id)"
@@ -107,6 +110,7 @@ import { userRole } from '@/api/navAuth';
 // State
 const products = ref([]);
 const categories = ref([]);
+const editingProductId = ref(null);
 const loading = ref(false);
 const error = ref(null);
 const showForm = ref(false);
@@ -145,11 +149,26 @@ const fetchCategories = async () => {
   }
 };
 
+// Redigera produkt och nolla formulär
+const resetForm = () => {
+  form.value = {
+    name: '',
+    description: '',
+    price: 0,
+    imageUrl: '',
+    categoryId: '',
+    quantity: 0
+  };
+  editingProductId.value = null;
+  showForm.value = false;
+};
 
-// Toggle formulär
 const toggleForm = () => {
-  // Visa/dölj formulär
-  showForm.value = !showForm.value;
+  if (showForm.value) {
+    resetForm();
+  } else {
+    showForm.value = true;
+  }
 };
 
 // Skapa produkt
@@ -161,10 +180,39 @@ const createProduct = async () => {
     });
 
     // Återställ formulär
-    showForm.value = false;
+    resetForm();
     await fetchProducts();
   } catch (err) {
     alert(err?.error || 'Kunde inte skapa produkt');
+  }
+};
+
+// Redigera produkt
+const startEdit = (product) => {
+  editingProductId.value = product.id;
+  showForm.value = true;
+
+  form.value = {
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    imageUrl: product.imageUrl,
+    categoryId: product.categoryId,
+    quantity: product.inventory?.quantity ?? 0
+  };
+};
+
+const updateProduct = async () => {
+  try {
+    await apiFetch(`/products/${editingProductId.value}`, {
+      method: 'PUT',
+      body: JSON.stringify(form.value)
+    });
+
+    resetForm();
+    await fetchProducts();
+  } catch (err) {
+    alert(err?.error || 'Kunde inte uppdatera produkt');
   }
 };
 
