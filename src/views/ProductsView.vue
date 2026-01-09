@@ -36,20 +36,18 @@
           <div class="mb-2">
             <label for="categoryId" class="form-label">Kategori</label>
             <select
-            v-model.number="form.categoryId"
-            class="form-select"
-            required>
-            <option disabled value="">Välj kategori</option>
-
-    <option
-      v-for="category in categories"
-      :key="category.id"
-      :value="category.id"
-    >
-      {{ category.name }}
-    </option>
-  </select>
-</div>
+              v-model.number="form.categoryId"
+              class="form-select"
+              required>
+              <option disabled value="">Välj kategori</option>
+                <option
+                  v-for="category in categories"
+                  :key="category.id"
+                  :value="category.id"
+                > {{ category.name }}
+                </option>
+            </select>
+          </div>
 
           <div class="mb-2">
             <label for="quantity" class="form-label">Antal</label>
@@ -91,9 +89,10 @@
             <button class="btn btn-sm btn-outline-primary me-2">
               Redigera
             </button>
-            <button class="btn btn-sm btn-outline-danger">
-              Ta bort
-            </button>
+            <button
+              class="btn btn-sm btn-outline-danger"
+              @click="deleteProduct(product.id)"
+            >Ta bort</button>
           </div>
         </div>
       </div>
@@ -166,6 +165,20 @@ const createProduct = async () => {
     await fetchProducts();
   } catch (err) {
     alert(err?.error || 'Kunde inte skapa produkt');
+  }
+};
+
+// Ta bort produkt
+const deleteProduct = async (id) => {
+  if (!confirm('Är du säker på att du vill ta bort produkten?')) return;
+
+  try {
+    await apiFetch(`/products/${id}`, {
+      method: 'DELETE'
+    });
+    await fetchProducts();
+  } catch (err) {
+    alert(err?.error || 'Kunde inte ta bort produkt');
   }
 };
 
