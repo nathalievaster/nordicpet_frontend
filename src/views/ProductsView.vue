@@ -1,5 +1,6 @@
 <template>
-    <h1 class="mb-4">Produkter</h1>
+  <main class="container mt-4">
+   <h1 class="mb-4">Produkter</h1>
 
     <button
         v-if="isAdmin"
@@ -100,6 +101,7 @@
         </div>
       </div>
     </div>
+  </main>
 </template>
 
 <script setup>
@@ -238,9 +240,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
 .card-img-top {
   height: 200px;
   object-fit: cover;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
 }
 
 form {
