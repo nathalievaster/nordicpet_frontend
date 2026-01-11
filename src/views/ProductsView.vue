@@ -99,7 +99,8 @@
               <!-- REDIGERINGSLÄGE -->
               <div v-else class="d-flex gap-2 align-items-center">
                 <input type="number" class="form-control form-control-sm" style="max-width: 90px"
-                  v-model.number="inventoryEdit[product.id].quantity" min="0" />
+                  v-model.number="inventoryEdit[product.id].quantity" min="0"
+                  @input="inventoryMessage[product.id] = ''" />
 
                 <button class="btn btn-sm btn-success" @click="saveInventory(product.id)">
                   Spara
@@ -108,6 +109,10 @@
                 <button class="btn btn-sm btn-outline-secondary" @click="cancelInventoryEdit(product.id)">
                   Avbryt
                 </button>
+                
+                  <small v-if="inventoryMessage[product.id]" class="text-muted">
+                    {{ inventoryMessage[product.id] }}
+                  </small>
               </div>
             </div>
 
@@ -334,13 +339,15 @@ const cancelInventoryEdit = (productId) => {
   delete inventoryEdit.value[productId];
 };
 
+const inventoryMessage = ref({});
+
 const saveInventory = async (productId) => {
   const entry = inventoryEdit.value[productId];
 
   const change = entry.quantity - entry.originalQuantity;
 
   if (change === 0) {
-    alert('Inga ändringar att spara');
+    inventoryMessage.value[productId] = 'Inga ändringar att spara';
     return;
   }
 
@@ -353,7 +360,8 @@ const saveInventory = async (productId) => {
     delete inventoryEdit.value[productId];
     await fetchProducts();
   } catch (err) {
-    alert(err?.error || 'Kunde inte uppdatera lagersaldo');
+    inventoryMessage.value[productId] =
+      err?.error || 'Kunde inte uppdatera lagersaldo';
   }
 };
 
