@@ -82,6 +82,35 @@
             <h3 class="card-title">{{ product.name }}</h3>
             <p class="card-text">{{ product.description }}</p>
             <p class="fw-bold">{{ product.price }} kr</p>
+            <div class="mt-3">
+              <label class="form-label mb-1">Lagersaldo</label>
+
+              <!-- VISNINGSLÄGE -->
+              <div v-if="!inventoryEdit[product.id]?.editing" class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">
+                  {{ product.inventory?.quantity ?? 0 }} st
+                </span>
+
+                <button class="btn btn-sm btn-outline-primary" @click="startInventoryEdit(product)">
+                  Ändra
+                </button>
+              </div>
+
+              <!-- REDIGERINGSLÄGE -->
+              <div v-else class="d-flex gap-2 align-items-center">
+                <input type="number" class="form-control form-control-sm" style="max-width: 90px"
+                  v-model.number="inventoryEdit[product.id].quantity" min="0" />
+
+                <button class="btn btn-sm btn-success" @click="saveInventory(product.id)">
+                  Spara
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" @click="cancelInventoryEdit(product.id)">
+                  Avbryt
+                </button>
+              </div>
+            </div>
+
           </div>
 
           <footer class="card-footer" v-if="isAdmin">
@@ -289,6 +318,46 @@ const updateProduct = async () => {
     alert(err?.error || 'Kunde inte uppdatera produkt');
   }
 };
+
+// Justera lagersaldo
+const inventoryEdit = ref({});
+
+const startInventoryEdit = (product) => {
+  inventoryEdit.value[product.id] = {
+    editing: true,
+    originalQuantity: product.inventory?.quantity ?? 0,
+    quantity: product.inventory?.quantity ?? 0
+  };
+};
+
+const cancelInventoryEdit = (productId) => {
+  delete inventoryEdit.value[productId];
+};
+
+const saveInventory = async (productId) => {
+  const entry = inventoryEdit.value[productId];
+
+  const change = entry.quantity - entry.originalQuantity;
+
+  if (change === 0) {
+    alert('Inga ändringar att spara');
+    return;
+  }
+
+  try {
+    await apiFetch(`/inventory/${productId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ change })
+    });
+
+    delete inventoryEdit.value[productId];
+    await fetchProducts();
+  } catch (err) {
+    alert(err?.error || 'Kunde inte uppdatera lagersaldo');
+  }
+};
+
+
 
 onMounted(() => {
   fetchProducts();
