@@ -15,33 +15,56 @@
 
       <form @submit.prevent="editingProductId ? updateProduct() : createProduct()" class="card p-4 shadow mb-4">
         <fieldset>
-          <label for="name" class="form-label">Namn</label>
-          <input id="name" v-model="form.name" class="form-control" placeholder="Namn" required />
+          <!-- Namn -->
+          <label class="form-label">Namn</label>
+          <input v-model="form.name" class="form-control" />
+          <p v-if="errors.name" class="text-danger mt-1 mb-0">
+            {{ errors.name }}
+          </p>
 
-          <label for="description" class="form-label">Beskrivning</label>
-          <input id="description" v-model="form.description" class="form-control" placeholder="Beskrivning" required />
+          <!-- Beskrivning -->
+          <label class="form-label mt-3">Beskrivning</label>
+          <input v-model="form.description" class="form-control" />
+          <p v-if="errors.description" class="text-danger mt-1 mb-0">
+            {{ errors.description }}
+          </p>
 
-          <label for="price" class="form-label">Pris</label>
-          <input id="price" v-model.number="form.price" type="number" class="form-control" placeholder="Pris"
-            required />
+          <!-- Pris -->
+          <label class="form-label mt-3">Pris</label>
+          <input type="number" v-model.number="form.price" class="form-control" />
+          <p v-if="errors.price" class="text-danger mt-1 mb-0">
+            {{ errors.price }}
+          </p>
 
-          <label for="imageUrl" class="form-label">Bild-URL</label>
-          <input id="imageUrl" v-model="form.imageUrl" class="form-control" placeholder="Bild-URL" />
+          <!-- Bild -->
+          <label class="form-label mt-3">Bild-URL</label>
+          <input v-model="form.imageUrl" class="form-control" />
 
-          <label for="categoryId" class="form-label">Kategori</label>
-          <select id="categoryId" v-model.number="form.categoryId" class="form-select" required>
+          <!-- Kategori -->
+          <label class="form-label mt-3">Kategori</label>
+          <select v-model.number="form.categoryId" class="form-select">
             <option disabled value="">Välj kategori</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
           </select>
+          <p v-if="errors.categoryId" class="text-danger mt-1 mb-0">
+            {{ errors.categoryId }}
+          </p>
 
-          <label for="quantity" class="form-label">Antal</label>
-          <input id="quantity" v-model.number="form.quantity" type="number" class="form-control" placeholder="Antal" />
+          <!-- Antal -->
+          <label class="form-label mt-3">Antal</label>
+          <input type="number" v-model.number="form.quantity" class="form-control" />
+          <p v-if="errors.quantity" class="text-danger mt-1 mb-0">
+            {{ errors.quantity }}
+          </p>
 
-          <button type="submit" class="btn btn-primary mt-3">{{ editingProductId ? 'Uppdatera' : 'Spara' }}</button>
+          <button type="submit" class="btn btn-primary mt-4">
+            {{ editingProductId ? 'Uppdatera' : 'Spara' }}
+          </button>
         </fieldset>
       </form>
+
     </section>
 
     <!-- Inga produkter -->
@@ -134,6 +157,36 @@ const form = ref({
   quantity: 0
 });
 
+// Validering av formulär
+const errors = ref({});
+
+const validateForm = () => {
+  const newErrors = {};
+
+  if (!form.value.name.trim()) {
+    newErrors.name = 'Produktnamn måste anges';
+  }
+
+  if (!form.value.description.trim()) {
+    newErrors.description = 'Beskrivning måste anges';
+  }
+
+  if (form.value.price <= 0) {
+    newErrors.price = 'Pris måste vara större än 0';
+  }
+
+  if (!form.value.categoryId) {
+    newErrors.categoryId = 'Du måste välja en kategori';
+  }
+
+  if (form.value.quantity < 0) {
+    newErrors.quantity = 'Antal kan inte vara negativt';
+  }
+
+  errors.value = newErrors;
+  return Object.keys(newErrors).length === 0;
+};
+
 // Roll
 const isAdmin = computed(() => userRole.value === 'admin');
 
@@ -168,6 +221,8 @@ const resetForm = () => {
     categoryId: '',
     quantity: 0
   };
+
+  errors.value = {};
   editingProductId.value = null;
   showForm.value = false;
 };
@@ -182,6 +237,11 @@ const toggleForm = () => {
 
 // Skapa produkt
 const createProduct = async () => {
+  // Validera formulär
+  if (!validateForm()) {
+    return;
+  }
+
   try {
     await apiFetch('/products', {
       method: 'POST',
@@ -212,6 +272,11 @@ const startEdit = (product) => {
 };
 
 const updateProduct = async () => {
+  // Validera formulär
+  if (!validateForm()) {
+    return;
+  }
+
   try {
     await apiFetch(`/products/${editingProductId.value}`, {
       method: 'PUT',
