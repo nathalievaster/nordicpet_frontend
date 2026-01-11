@@ -1,106 +1,85 @@
 <template>
   <main class="container mt-4">
-   <h1 class="mb-4">Produkter</h1>
+    <header class="mb-4 text-center">
+      <h1>Produkter</h1>
+      <button v-if="isAdmin" class="btn btn-success" @click="toggleForm" title="Lägg till produkt">
+        Lägg till produkt
+      </button>
+    </header>
 
-    <button
-        v-if="isAdmin"
-        class="btn btn-success"
-        @click="toggleForm"
-        title="Lägg till produkt"
-      >Lägg till produkt</button>
+    <!-- Produktform (admin only) -->
+    <section v-if="showForm && isAdmin" aria-label="Lägg till eller redigera produkt">
+      <header>
+        <h2>{{ editingProductId ? 'Redigera produkt' : 'Lägg till produkt' }}</h2>
+      </header>
 
-          <!-- Produktform (admin only) -->
-    <div v-if="showForm && isAdmin">
-        <h2>Lägg till produkt</h2>
+      <form @submit.prevent="editingProductId ? updateProduct() : createProduct()" class="card p-4 shadow mb-4">
+        <fieldset>
+          <label for="name" class="form-label">Namn</label>
+          <input id="name" v-model="form.name" class="form-control" placeholder="Namn" required />
 
-        <form @submit.prevent="editingProductId ? updateProduct() : createProduct()">
-          <div class="mb-2">
-            <label for="name" class="form-label">Namn</label>
-            <input v-model="form.name" class="form-control" placeholder="Namn" />
-          </div>
+          <label for="description" class="form-label">Beskrivning</label>
+          <input id="description" v-model="form.description" class="form-control" placeholder="Beskrivning" required />
 
-          <div class="mb-2">
-            <label for="description" class="form-label">Beskrivning</label>
-            <input v-model="form.description" class="form-control" placeholder="Beskrivning" />
-          </div>
+          <label for="price" class="form-label">Pris</label>
+          <input id="price" v-model.number="form.price" type="number" class="form-control" placeholder="Pris"
+            required />
 
-          <div class="mb-2">
-            <label for="price" class="form-label ">Pris</label>
-            <input v-model.number="form.price" type="number" class="form-control" placeholder="Pris" />
-          </div>
+          <label for="imageUrl" class="form-label">Bild-URL</label>
+          <input id="imageUrl" v-model="form.imageUrl" class="form-control" placeholder="Bild-URL" />
 
-          <div class="mb-2">
-            <label for="imageUrl" class="form-label">Bild-URL</label>
-            <input v-model="form.imageUrl" class="form-control" placeholder="Bild-URL" />
-          </div>
+          <label for="categoryId" class="form-label">Kategori</label>
+          <select id="categoryId" v-model.number="form.categoryId" class="form-select" required>
+            <option disabled value="">Välj kategori</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
 
-          <div class="mb-2">
-            <label for="categoryId" class="form-label">Kategori</label>
-            <select
-              v-model.number="form.categoryId"
-              class="form-select"
-              required>
-              <option disabled value="">Välj kategori</option>
-                <option
-                  v-for="category in categories"
-                  :key="category.id"
-                  :value="category.id"
-                > {{ category.name }}
-                </option>
-            </select>
-          </div>
+          <label for="quantity" class="form-label">Antal</label>
+          <input id="quantity" v-model.number="form.quantity" type="number" class="form-control" placeholder="Antal" />
 
-          <div class="mb-2">
-            <label for="quantity" class="form-label">Antal</label>
-            <input v-model.number="form.quantity" type="number" class="form-control" placeholder="Antal" />
-          </div>
-
-          <button class="btn btn-primary">{{ editingProductId ? 'Uppdatera' : 'Spara' }}</button>
-        </form>
-      </div>
+          <button type="submit" class="btn btn-primary mt-3">{{ editingProductId ? 'Uppdatera' : 'Spara' }}</button>
+        </fieldset>
+      </form>
+    </section>
 
     <!-- Inga produkter -->
-    <div v-if="!loading && products.length === 0" class="alert alert-warning">
+    <section v-if="!loading && products.length === 0" class="alert alert-warning" role="status">
       Inga produkter hittades
-    </div>
+    </section>
 
     <!-- Produktlista -->
-    <div class="row m-4" v-if="!loading && products.length">
-      <div
-        class="col-md-4 mb-3"
-        v-for="product in products"
-        :key="product.id"
-      >
-        <div class="card h-100">
-          <img
-            v-if="product.imageUrl"
-            :src="product.imageUrl"
-            class="card-img-top"
-            alt="Produktbild"
-          />
+    <section v-if="!loading && products.length" aria-label="Produktlista" class="row">
+      <article v-for="product in products" :key="product.id" class="col-md-4 mb-3">
+        <article class="card h-100">
+          <img v-if="product.imageUrl" :src="product.imageUrl" class="card-img-top" alt="Produktbild" />
 
           <div class="card-body">
-            <h5 class="card-title">{{ product.name }}</h5>
+            <h3 class="card-title">{{ product.name }}</h3>
             <p class="card-text">{{ product.description }}</p>
             <p class="fw-bold">{{ product.price }} kr</p>
           </div>
 
-          <!-- Admin-funktioner-->
-          <div class="card-footer" v-if="isAdmin">
-          <!-- Redigera-knapp -->
-            <button
-              class="btn btn-sm btn-outline-primary me-2"
-              @click="startEdit(product)"
-              >Redigera</button>
-          <!-- Ta bort-knapp -->
-            <button
-              class="btn btn-sm btn-outline-danger"
-              @click="deleteProduct(product.id)"
-            >Ta bort</button>
-          </div>
-        </div>
-      </div>
-    </div>
+          <footer class="card-footer" v-if="isAdmin">
+            <button class="btn btn-sm btn-outline-primary me-2" @click="startEdit(product)">
+              Redigera
+            </button>
+            <button class="btn btn-sm btn-outline-danger" @click="openDeleteModal(product)">
+              Ta bort
+            </button>
+          </footer>
+        </article>
+      </article>
+    </section>
+
+
+    <Confirm :show="showConfirm" title="Bekräfta borttagning" :message="`Vill du ta bort ${productToDelete?.name}?`"
+      @confirm="confirmDelete" @cancel="showConfirm = false" />
+
+    <aside v-if="showDeleteSuccess" class="toast toast-success">
+      Produkten har tagits bort
+    </aside>
   </main>
 </template>
 
@@ -108,6 +87,34 @@
 import { ref, computed, onMounted } from 'vue';
 import { apiFetch } from '@/api/api';
 import { userRole } from '@/api/navAuth';
+import Confirm from '@/components/Confirm.vue';
+
+// Ta bort produkt med en bekräftelsemodal
+const productToDelete = ref(null);
+const showConfirm = ref(false);
+const showDeleteSuccess = ref(false);
+
+const openDeleteModal = (product) => {
+  productToDelete.value = product;
+  showConfirm.value = true;
+};
+
+const confirmDelete = async () => {
+  try {
+    await apiFetch(`/products/${productToDelete.value.id}`, {
+      method: 'DELETE'
+    });
+
+    showConfirm.value = false;
+    productToDelete.value = null;
+    showDeleteSuccess.value = true;
+    await fetchProducts();
+
+    setTimeout(() => showDeleteSuccess.value = false, 2000);
+  } catch (err) {
+    alert(err?.error || 'Kunde inte ta bort produkt');
+  }
+};
 
 // State
 const products = ref([]);
@@ -218,20 +225,6 @@ const updateProduct = async () => {
   }
 };
 
-// Ta bort produkt
-const deleteProduct = async (id) => {
-  if (!confirm('Är du säker på att du vill ta bort produkten?')) return;
-
-  try {
-    await apiFetch(`/products/${id}`, {
-      method: 'DELETE'
-    });
-    await fetchProducts();
-  } catch (err) {
-    alert(err?.error || 'Kunde inte ta bort produkt');
-  }
-};
-
 onMounted(() => {
   fetchProducts();
   fetchCategories();
@@ -240,7 +233,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
 .card-img-top {
   height: 200px;
   object-fit: cover;

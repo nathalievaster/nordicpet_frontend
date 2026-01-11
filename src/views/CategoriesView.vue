@@ -1,13 +1,16 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { apiFetch } from '@/api/api';
+import Confirm from '@/components/Confirm.vue';
 
 // State
 const categories = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
+// Delete modal + toast
 const categoryToDelete = ref(null);
+const showConfirm = ref(false);
 const showDeleteSuccess = ref(false);
 
 // Edit state
@@ -77,43 +80,37 @@ const resetForm = () => {
   error.value = null;
 };
 
-// Ta bort kategori
-const deleteCategory = async (id) => {
-
-  try {
-    await apiFetch(`/categories/${id}`, {
-      method: 'DELETE'
-    });
-    await fetchCategories();
-  } catch (err) {
-    error.value =
-      err?.error || 'Kunde inte ta bort kategori (har den produkter?)';
-  }
+// Öppna confirm-modal
+const openDeleteModal = (category) => {
+  categoryToDelete.value = category;
+  showConfirm.value = true;
 };
 
+// Bekräfta borttagning
 const confirmDelete = async () => {
   try {
     await apiFetch(`/categories/${categoryToDelete.value.id}`, {
       method: 'DELETE'
     });
 
+    showConfirm.value = false;
     categoryToDelete.value = null;
     showDeleteSuccess.value = true;
     await fetchCategories();
 
-    // Auto-hide efter 2 sek
+    // Auto-hide toast
     setTimeout(() => {
       showDeleteSuccess.value = false;
     }, 2000);
-
   } catch (err) {
-    alert(err?.error || 'Kunde inte ta bort kategori');
+    alert(err?.error || 'Kunde inte ta bort kategori (har den produkter?)');
   }
 };
 
 // Kör vid mount
 onMounted(fetchCategories);
 </script>
+
 
 <template>
   <main class="container mt-4">
@@ -178,7 +175,7 @@ onMounted(fetchCategories);
               <button class="btn btn-sm btn-outline-primary" @click="editCategory(category)">
                 Redigera
               </button>
-              <button class="btn btn-sm btn-outline-danger" @click="categoryToDelete = category">
+              <button class="btn btn-sm btn-outline-danger" @click="openDeleteModal(category)">
                 Ta bort
               </button>
             </div>
@@ -188,38 +185,15 @@ onMounted(fetchCategories);
     </section>
   </main>
 
-  <!-- Bekräfta borttagning-ruta -->
-  <section v-if="categoryToDelete" class="confirm-overlay" role="alertdialog" aria-modal="true">
-    <article class="confirm-box">
-      <header class="confirm-header">
-        <h2>Bekräfta borttagning</h2>
-      </header>
+  <!-- Confirm-modal -->
+  <Confirm :show="showConfirm" title="Bekräfta borttagning" :message="`Vill du ta bort ${categoryToDelete?.name}?`"
+    @confirm="confirmDelete" @cancel="showConfirm = false" />
 
-      <p>
-        Är du säker på att du vill ta bort
-        <strong>{{ categoryToDelete.name }}</strong>?
-      </p>
-
-      <footer class="confirm-actions">
-        <button type="button" class="btn btn-outline-secondary" @click="categoryToDelete = null">
-          Nej
-        </button>
-
-        <button type="button" class="btn btn-danger" @click="confirmDelete">
-          Ja, ta bort
-        </button>
-      </footer>
-    </article>
-  </section>
-
+  <!-- Toast -->
   <aside v-if="showDeleteSuccess" class="toast toast-success" role="status" aria-live="polite">
-    <span class="toast-message">
-      Kategorin har tagits bort
-    </span>
+    Kategorin har tagits bort
   </aside>
-
 </template>
-
 
 
 <style scoped>
@@ -288,6 +262,7 @@ main {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
