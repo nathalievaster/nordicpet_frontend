@@ -1,5 +1,5 @@
 // Bara bas-url så jag lätt kan slänga på endpoints
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://nordicpets-backend.onrender.com';
 
 // Exporterar fetchen för anrop till backend
 export const apiFetch = async (endpoint, options = {}) => {

@@ -176,7 +176,7 @@ import { apiFetch } from '@/api/api';
 import { userRole } from '@/api/navAuth';
 import Confirm from '@/components/Confirm.vue';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://nordicpets-backend.onrender.com';
 
 // Ta bort produkt med en bekräftelsemodal
 const productToDelete = ref(null);
