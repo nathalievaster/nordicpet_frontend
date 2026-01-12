@@ -7,6 +7,19 @@
       </button>
     </header>
 
+    <!-- Filter och sortering -->
+    <section class="row mb-4">
+      <div class="col-md-4">
+        <label class="form-label">Filtrera på kategori</label>
+        <select v-model="selectedCategory" class="form-select">
+          <option value="">Alla kategorier</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+    </section>
+
     <!-- Produktform (admin only) -->
     <section v-if="showForm && isAdmin" aria-label="Lägg till eller redigera produkt">
       <header>
@@ -64,17 +77,16 @@
           </button>
         </fieldset>
       </form>
-
     </section>
 
     <!-- Inga produkter -->
-    <section v-if="!loading && products.length === 0" class="alert alert-warning" role="status">
+    <section v-if="!loading && paginatedProducts.length === 0" class="alert alert-warning" role="status">
       Inga produkter hittades
     </section>
 
     <!-- Produktlista -->
-    <section v-if="!loading && products.length" aria-label="Produktlista" class="row">
-      <article v-for="product in products" :key="product.id" class="col-md-4 mb-3">
+    <section v-if="!loading && paginatedProducts.length" aria-label="Produktlista" class="row">
+      <article v-for="product in paginatedProducts" :key="product.id" class="col-md-4 mb-3">
         <article class="card h-100">
           <img v-if="product.imageUrl" :src="`${API_BASE}${product.imageUrl}`" class="card-img" alt="Produktbild" />
 
@@ -115,7 +127,6 @@
                 </small>
               </div>
             </div>
-
           </div>
 
           <footer class="card-footer" v-if="isAdmin">
@@ -130,6 +141,24 @@
       </article>
     </section>
 
+    <!-- Paginering -->
+    <nav v-if="totalPages > 1" class="d-flex justify-content-center mt-4">
+      <ul class="pagination">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <button class="page-link" @click="currentPage--">Föregående</button>
+        </li>
+
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
+          <button class="page-link" @click="currentPage = page">
+            {{ page }}
+          </button>
+        </li>
+
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <button class="page-link" @click="currentPage++">Nästa</button>
+        </li>
+      </ul>
+    </nav>
 
     <Confirm :show="showConfirm" title="Bekräfta borttagning" :message="`Vill du ta bort ${productToDelete?.name}?`"
       @confirm="confirmDelete" @cancel="showConfirm = false" />
@@ -139,6 +168,7 @@
     </aside>
   </main>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
@@ -182,6 +212,13 @@ const editingProductId = ref(null);
 const loading = ref(false);
 const error = ref(null);
 const showForm = ref(false);
+
+// Paginering
+const currentPage = ref(1);
+const itemsPerPage = 6;
+
+// Filtrering
+const selectedCategory = ref('');
 
 // Ladda upp fil
 const imageFile = ref(null);
@@ -395,6 +432,28 @@ const saveInventory = async (productId) => {
       err?.error || 'Kunde inte uppdatera lagersaldo';
   }
 };
+
+// Filtrera produkter på kategori
+const filteredProducts = computed(() => {
+  if (!selectedCategory.value) {
+    return products.value;
+  }
+
+  return products.value.filter(
+    p => p.categoryId === Number(selectedCategory.value)
+  );
+});
+
+// Totalt antal sidor
+const totalPages = computed(() =>
+  Math.ceil(filteredProducts.value.length / itemsPerPage)
+);
+
+// Produkter som visas på aktuell sida
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredProducts.value.slice(start, start + itemsPerPage);
+});
 
 onMounted(() => {
   fetchProducts();
