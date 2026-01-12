@@ -198,7 +198,6 @@ const form = ref({
   name: '',
   description: '',
   price: 0,
-  imageUrl: '',
   categoryId: '',
   quantity: 0
 });
@@ -263,7 +262,6 @@ const resetForm = () => {
     name: '',
     description: '',
     price: 0,
-    imageUrl: '',
     categoryId: '',
     quantity: 0
   };
@@ -334,10 +332,20 @@ const updateProduct = async () => {
     return;
   }
 
+  const formData = new FormData();
+
+  for (const key in form.value) {
+    formData.append(key, form.value[key]);
+  }
+
+  if (imageFile.value) {
+    formData.append('image', imageFile.value)
+  }
+
   try {
     await apiFetch(`/products/${editingProductId.value}`, {
       method: 'PUT',
-      body: JSON.stringify(form.value)
+      body: formData
     });
 
     resetForm();
