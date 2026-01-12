@@ -2,22 +2,21 @@
 const BASE_URL = 'http://localhost:3000';
 
 // Exporterar fetchen för anrop till backend
-export const apiFetch = async (endpoint, options = {}) => { // options för att kunna skicka med metod, body etc (om det behövs)
-    // Hämtar token från localstorage om den finns
+export const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
 
+  // Om body är FormData så sätts INTE Content-Type
+  const isFormData = options.body instanceof FormData;
+
   const res = await fetch(`${BASE_URL}${endpoint}`, {
-    // Sätter headers och lägger till Authorization header OM token finns
+    ...options,
     headers: {
-      'Content-Type': 'application/json',
-      // Spread operator för att bara lägga till Authorization om token existerar
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` })
-    },
-    // Spread operator för att lägga till andra options som skickas med (om det behövs)
-    ...options
+    }
   });
 
-  // Läs body som JSON
+  // Läs body som JSON (om möjligt)
   let data;
   try {
     data = await res.json();
@@ -25,10 +24,9 @@ export const apiFetch = async (endpoint, options = {}) => { // options för att 
     data = null;
   }
 
-  // Kasta bara om res.ok är false
   if (!res.ok) {
     throw data || { error: 'API error' };
   }
 
-  return data; // Här kommer data.user att finnas
+  return data;
 };

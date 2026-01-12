@@ -37,8 +37,8 @@
           </p>
 
           <!-- Bild -->
-          <label class="form-label mt-3">Bild-URL</label>
-          <input v-model="form.imageUrl" class="form-control" />
+          <label class="form-label mt-3">Bild</label>
+          <input type="file" class="form-control" accept="image/*" @change="onFileChange" />
 
           <!-- Kategori -->
           <label class="form-label mt-3">Kategori</label>
@@ -76,7 +76,7 @@
     <section v-if="!loading && products.length" aria-label="Produktlista" class="row">
       <article v-for="product in products" :key="product.id" class="col-md-4 mb-3">
         <article class="card h-100">
-          <img v-if="product.imageUrl" :src="product.imageUrl" class="card-img-top" alt="Produktbild" />
+          <img v-if="product.imageUrl" :src="`${API_BASE}${product.imageUrl}`" class="card-img" alt="Produktbild" />
 
           <div class="card-body">
             <h3 class="card-title">{{ product.name }}</h3>
@@ -109,10 +109,10 @@
                 <button class="btn btn-sm btn-outline-secondary" @click="cancelInventoryEdit(product.id)">
                   Avbryt
                 </button>
-                
-                  <small v-if="inventoryMessage[product.id]" class="text-muted">
-                    {{ inventoryMessage[product.id] }}
-                  </small>
+
+                <small v-if="inventoryMessage[product.id]" class="text-muted">
+                  {{ inventoryMessage[product.id] }}
+                </small>
               </div>
             </div>
 
@@ -145,6 +145,8 @@ import { ref, computed, onMounted } from 'vue';
 import { apiFetch } from '@/api/api';
 import { userRole } from '@/api/navAuth';
 import Confirm from '@/components/Confirm.vue';
+
+const API_BASE = 'http://localhost:3000';
 
 // Ta bort produkt med en bekräftelsemodal
 const productToDelete = ref(null);
@@ -180,6 +182,16 @@ const editingProductId = ref(null);
 const loading = ref(false);
 const error = ref(null);
 const showForm = ref(false);
+
+// Ladda upp fil
+const imageFile = ref(null);
+
+const onFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  imageFile.value = file;
+};
 
 // Form
 const form = ref({
@@ -256,6 +268,7 @@ const resetForm = () => {
     quantity: 0
   };
 
+  imageFile.value = null;
   errors.value = {};
   editingProductId.value = null;
   showForm.value = false;
@@ -276,10 +289,20 @@ const createProduct = async () => {
     return;
   }
 
+  const formData = new FormData();
+
+  for (const key in form.value) {
+    formData.append(key, form.value[key]);
+  }
+
+  if (imageFile.value) {
+    formData.append('image', imageFile.value);
+  }
+
   try {
     await apiFetch('/products', {
       method: 'POST',
-      body: JSON.stringify(form.value)
+      body: formData
     });
 
     // Återställ formulär
@@ -365,8 +388,6 @@ const saveInventory = async (productId) => {
   }
 };
 
-
-
 onMounted(() => {
   fetchProducts();
   fetchCategories();
@@ -375,8 +396,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.card-img-top {
-  height: 200px;
+.card-img {
+  max-height: 300px;
+  width: auto;
   object-fit: cover;
 }
 
