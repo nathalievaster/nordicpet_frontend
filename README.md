@@ -1,38 +1,118 @@
-# .
+# NordicPet – Produkt- och lagerhanteringssystem
 
-This template should help get you started developing with Vue 3 in Vite.
+Detta projekt är en fullstack-webbapplikation utvecklad för att hantera produkter, lagersaldo och användarbehörigheter för ett företag. Applikationen består av en backend byggd med Node.js och Hapi samt en frontend utvecklad i Vue 3. Systemet stödjer autentisering, rollbaserad åtkomstkontroll, filuppladdning av produktbilder samt molnbaserad publicering.
 
-## Recommended IDE Setup
+## Funktionalitet
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Inloggning och registrering med JWT-baserad autentisering
 
-## Recommended Browser Setup
+- Rollbaserad åtkomst (admin och user)
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- Skapa, redigera och ta bort produkter (admin)
 
-## Customize configuration
+- Visa produkter med tillhörande lagersaldo
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- Justera lagersaldo i realtid
 
-## Project Setup
+- Hantera produktkategorier (admin)
 
-```sh
+- Uppladdning och uppdatering av produktbilder
+
+- Filtrering och paginering av produkter i frontend
+
+## Teknikstack
+### Backend
+
+- Node.js
+
+- Hapi
+
+- Prisma ORM
+
+- PostgreSQL (produktion)
+
+- SQLite (utveckling)
+
+- JWT för autentisering
+
+- bcrypt för lösenordshantering
+
+- Joi för validering
+
+### Frontend
+
+- Vue 3 (Composition API)
+
+- Bootstrap
+
+- Fetch API
+
+- Netlify (deployment)
+
+## Installation och körning lokalt
+### Backend
+
+Klona repot:
+
+git clone https://github.com/nathalievaster/nordicpet_backend
+cd nordicpet_backend
+
+
+Installera beroenden:
+
 npm install
-```
 
-### Compile and Hot-Reload for Development
 
-```sh
+Skapa .env och ange:
+
+DATABASE_URL=postgresql://...
+JWT_SECRET=your_secret
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=adminpassword
+
+
+Kör migrationer och seed:
+
+npx prisma migrate dev
+npm run seed
+
+
+Starta servern:
+
 npm run dev
-```
 
-### Compile and Minify for Production
 
-```sh
-npm run build
-```
+Backend körs på http://localhost:3000.
+
+### Frontend
+
+Klona frontend-repot:
+
+git clone https://github.com/nathalievaster/nordicpet_frontend
+cd nordicpet_frontend
+
+
+Installera beroenden:
+
+npm install
+
+
+Starta utvecklingsserver:
+
+npm run dev
+
+
+Frontend körs på http://localhost:5173.
+
+
+## Säkerhet
+
+- Lösenord hashas med bcrypt
+
+- JWT används för autentisering
+
+- Rollbaserad åtkomstkontroll
+
+- Validering av indata med Joi
+
+- Filuppladdning valideras via MIME-typ och filändelse
